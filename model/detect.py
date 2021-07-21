@@ -37,8 +37,10 @@ sio = socketio.Server(cors_allowed_origins='*')
 app = Flask(__name__)
 CORS(app)
 
+adv_detect = None
+
 # From image to base64 string
-def img2base64(image, ):
+def img2base64(image):
     img = Image.fromarray(np.uint8(image))
     buffer = BytesIO()
     img.save(buffer, format="JPEG")
@@ -48,6 +50,50 @@ def img2base64(image, ):
 @sio.on('connect')
 def connect(sid, environ):
     print("connect ", sid)
+
+@sio.on('connect')
+def connect(sid, environ):
+    print("connect ", sid)
+
+@sio.on('fix_patch')
+def fix_patch(self, data):
+    if(data > 0):
+        adv_detect.fixed = True
+        adv_detect.patches = []
+        patch_cv_image = np.zeros((416, 416, 3))
+        # patch_cv_image = cv2.resize(patch_cv_image, (320, 160), interpolation = cv2.INTER_AREA)
+        for box in adv_detect.adv_patch_boxes:
+            if adv_detect.monochrome:
+                patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 0] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
+                patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 1] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
+                patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 2] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
+            else:
+                patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
+            adv_detect.patches.append(adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])])
+        # Publish the patch image
+        # self.publish_image(patch_cv_image * 255.0, self.patch_pub)
+    else:
+        adv_detect.fixed = False
+
+@sio.on('clear_patch')
+def clear_patch(self, data):
+    if(data > 0):
+        adv_detect.adv_patch_boxes = []
+        adv_detect.patches = []
+        if adv_detect.monochrome:
+            adv_detect.noise = np.zeros((416, 416))
+        else:
+            adv_detect.noise = np.zeros((416, 416, 3))
+        adv_detect.iter = 0
+
+@sio.on('add_patch')
+def add_patch(self, data):
+    box = data[1:]
+    if(data[0] < 0):
+        adv_detect.adv_patch_boxes.append(box)
+        adv_detect.iter = 0
+    else:
+        adv_detect.adv_patch_boxes[data[0]] = box
 
 # Registering event handler for each frame
 @sio.on('frame')
@@ -160,7 +206,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Object Detection')
     parser.add_argument('--model', help='deep learning model', type=str, required=True)
     parser.add_argument('--class_name', help='class names', type=str, required=True)
-    parser.add_argument('--attack', help='adversarial attacks type', choices=['one_targeted', 'multi_targeted', 'multi_untargeted'], type=str, required=False, default="multi_untargeted")
+    parser.add_argument('--attack', help='adversarial attacks type', choices=['one_targeted', 'multi_targeted', 'multi_untargeted'], type=str, required=False, default="one_targeted")
     parser.add_argument('--monochrome', action='store_true', help='monochrome patch')
     args = parser.parse_args()
 

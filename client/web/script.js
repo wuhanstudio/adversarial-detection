@@ -27,6 +27,7 @@ function clear_patch() {
     boxes = [];
     var ctx=$('#canvas')[0].getContext('2d'); 
     ctx.clearRect(0, 0, 416, 416);
+    socket.emit('clear_patch', 1);
 }
 
 // Receive the original image
@@ -35,19 +36,14 @@ socket.on('update', function (data) {
 });
 
 function fix_patch(fixed) {
-    // var fix_patch_msg = new ROSLIB.Message({
-    //     data: parseInt(fixed)
-    // });
-    // fix_patch_pub.publish(fix_patch_msg);
+    socket.emit('fix_patch', fixed);
 }
 
 $(document).ready(function () {
-
     // Fix patch
     $("#customCheck1").change(function() {
         if(this.checked) {
             fix_patch(1);
-            //Do stuff
         }
         else
         {
@@ -94,6 +90,7 @@ $(document).ready(function () {
                 //     data: box
                 // });
                 // adv_patch_pub.publish(adv_patch_msg)
+                socket.emit('add_patch', box);
                 box = {}
                 box.startX = rect.startX
                 box.startY = rect.startY

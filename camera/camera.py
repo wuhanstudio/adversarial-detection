@@ -1,5 +1,6 @@
 import socketio
 import cv2
+from time import sleep
 
 # Data IO and Encoding-Decoding
 from io import BytesIO
@@ -25,11 +26,6 @@ def connect():
     print('connection established')
 
 @sio.event
-def my_message(data):
-    print('message received with ', data)
-    sio.emit('my response', {'response': 'my response'})
-
-@sio.event
 def disconnect():
     print('disconnected from server')
 
@@ -38,10 +34,10 @@ sio.connect('http://localhost:9090')
 # Capture frame-by-frame (the latest one)
 # cam = cv2.VideoCapture("http://192.168.199.240:4747/mjpegfeed?640x480")
 
-while True:
-    # Capture frame-by-frame (the latest one)
-    cam = cv2.VideoCapture(0)
+# Capture frame-by-frame (the latest one)
+cam = cv2.VideoCapture(0)
 
+while cam.isOpened():
     ret, frame = cam.read()
     if not ret:
         print("failed to grab frame")
