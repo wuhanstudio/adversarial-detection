@@ -55,7 +55,9 @@ class AdversarialDetection:
         self.patches = []
 
         # loss = K.sum(K.abs((self.model.input-K.mean(self.model.input))))
-        # loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input))
+
+        # Random Noises
+        loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input))
 
         # Mirror
         # loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input)) - 0.01 * tf.reduce_sum(K.abs(self.model.input - tf.image.flip_left_right(self.model.input)))

@@ -35,10 +35,10 @@ sio.connect('http://localhost:9090')
 # cam = cv2.VideoCapture("http://192.168.199.240:4747/mjpegfeed?640x480")
 
 # Capture frame-by-frame (the latest one)
-cam = cv2.VideoCapture(0)
+# cam = cv2.VideoCapture(0)
 
 while True:
-    # cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(0)
     ret, frame = cam.read()
     if not ret:
         print("failed to grab frame")
