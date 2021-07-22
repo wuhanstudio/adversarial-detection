@@ -205,7 +205,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Object Detection')
     parser.add_argument('--model', help='deep learning model', type=str, required=True)
     parser.add_argument('--class_name', help='class names', type=str, required=True)
-    parser.add_argument('--attack', help='adversarial attacks type', choices=['one_targeted', 'multi_targeted', 'multi_untargeted'], type=str, required=False, default="one_targeted")
+    parser.add_argument('--attack', help='adversarial attacks type', choices=['one_targeted', 'multi_targeted', 'multi_untargeted'], type=str, required=False, default="multi_untargeted")
     parser.add_argument('--monochrome', action='store_true', help='monochrome patch')
     args = parser.parse_args()
 

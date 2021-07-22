@@ -18,6 +18,7 @@ socket.on('patch', function (data) {
 
 socket.on('connect', function () {
     console.log('Client has connected to the server!');
+    clear_patch();
 });
 
 socket.on('disconnect', function () {
