@@ -37,7 +37,8 @@ sio.connect('http://localhost:9090')
 # Capture frame-by-frame (the latest one)
 cam = cv2.VideoCapture(0)
 
-while cam.isOpened():
+while True:
+    # cam = cv2.VideoCapture(0)
     ret, frame = cam.read()
     if not ret:
         print("failed to grab frame")

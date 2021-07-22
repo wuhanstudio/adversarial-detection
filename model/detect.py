@@ -61,7 +61,6 @@ def fix_patch(self, data):
         adv_detect.fixed = True
         adv_detect.patches = []
         patch_cv_image = np.zeros((416, 416, 3))
-        # patch_cv_image = cv2.resize(patch_cv_image, (320, 160), interpolation = cv2.INTER_AREA)
         for box in adv_detect.adv_patch_boxes:
             if adv_detect.monochrome:
                 patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 0] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
@@ -71,7 +70,7 @@ def fix_patch(self, data):
                 patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
             adv_detect.patches.append(adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])])
         # Publish the patch image
-        # self.publish_image(patch_cv_image * 255.0, self.patch_pub)
+        sio.emit('patch', {'data': img2base64(patch_cv_image*255.0)})
     else:
         adv_detect.fixed = False
 
@@ -214,7 +213,7 @@ if __name__ == '__main__':
         content = f.readlines()
     classes = [x.strip() for x in content] 
 
-    adv_detect = AdversarialDetection(args.model, args.attack, args.monochrome)
+    adv_detect = AdversarialDetection(args.model, args.attack, args.monochrome, classes)
 
     # wrap Flask application with engineio's middleware
     app = socketio.Middleware(sio, app)

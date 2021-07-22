@@ -8,7 +8,8 @@ tf.compat.v1.disable_eager_execution()
 import keras.backend as K
 
 class AdversarialDetection:
-    def __init__(self, model, attack_type, monochrome):
+    def __init__(self, model, attack_type, monochrome, classes):
+        self.classes = len(classes)
         self.epsilon = 1
         self.graph = tf.compat.v1.get_default_graph()
         self.monochrome = monochrome
@@ -30,20 +31,20 @@ class AdversarialDetection:
         for out in self.model.output:
             # Targeted One Box
             if attack_type == "one_targeted":
-                loss = K.max(K.sigmoid(K.reshape(out, (-1, 5 + 80))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + 80))[:, 5]))
+                loss = K.max(K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, 5]))
 
             # Targeted Multi boxes
             if attack_type == "multi_targeted":
-                loss = K.sigmoid(K.reshape(out, (-1, 5 + 80))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + 80))[:, 5])
+                loss = K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, 5])
 
             # Untargeted Multi boxes
             if attack_type == "multi_untargeted":
-                # loss = tf.reduce_sum(K.sigmoid(K.reshape(out, (-1, 5 + 80))[:, 5:]))
-                for i in range(0, 80):
+                # loss = tf.reduce_sum(K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, 5:]))
+                for i in range(0, self.classes):
                     if loss == None:
-                        loss = tf.reduce_sum(K.sigmoid(K.reshape(out, (-1, 5 + 80))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + 80))[:, i+5]))
+                        loss = tf.reduce_sum(K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, i+5]))
                     else:
-                        loss = loss + tf.reduce_sum(K.sigmoid(K.reshape(out, (-1, 5 + 80))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + 80))[:, i+5]))
+                        loss = loss + tf.reduce_sum(K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, i+5]))
             grads = K.gradients(loss, self.model.input)
             if self.delta == None:
                 self.delta =  K.sign(grads[0])

@@ -11,6 +11,10 @@ socket.on('adv', function (data) {
     $('#adv').attr("src", "data:image/png;base64," + data.data);
 });
 
+// Receive the patch
+socket.on('patch', function (data) {
+    $('#patch').attr("src", "data:image/png;base64," + data.data);
+});
 
 socket.on('connect', function () {
     console.log('Client has connected to the server!');
@@ -86,10 +90,6 @@ $(document).ready(function () {
             if(!move){
                 drag = false;
                 box = [-1, Math.round(rect.startX), Math.round(rect.startY), Math.round(rect.w), Math.round(rect.h)]
-                // var adv_patch_msg = new ROSLIB.Message({
-                //     data: box
-                // });
-                // adv_patch_pub.publish(adv_patch_msg)
                 socket.emit('add_patch', box);
                 box = {}
                 box.startX = rect.startX
@@ -97,15 +97,11 @@ $(document).ready(function () {
                 box.w = rect.w
                 box.h = rect.h
                 boxes.push(box)
-                // console.log(boxes);
             }
             else {
                 move = false;
                 box = [box_index, Math.round(boxes[box_index].startX), Math.round(boxes[box_index].startY), Math.round(boxes[box_index].w), Math.round(boxes[box_index].h)]
-                // var adv_patch_msg = new ROSLIB.Message({
-                //     data: box
-                // });
-                // adv_patch_pub.publish(adv_patch_msg)
+                socket.emit('add_patch', box);
             }
         });
     

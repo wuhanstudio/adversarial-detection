@@ -39,9 +39,13 @@
     <!-- Visualize Input Images -->
     <div class="container">
         <div class="row">
-            <div class="col-md-4">
-                <img id="input" src="hold.png" />
+            <div class="col-md-6">
+                <img id="input" width="416px" height="416px" src="hold.png" />
                 <h4>Input Image</h4>
+            </div>
+            <div class="col-md-6">
+                <img id="adv" width="416px" height="416px" src="hold.png" />
+                <h4>Adversarial Image</h4>
             </div>
         </div>
         <div class="row">
@@ -56,8 +60,7 @@
         </div>
         <div class="row">
             <div class="col-md-6">
-                <img id="adv" src="hold.png" />
-                <h4>Adversarial Image</h4>
+
             </div>
             <div class="col-md-6">
                 <div class="btn btn-primary" onclick="clear_patch()">Clear Patch</div>
