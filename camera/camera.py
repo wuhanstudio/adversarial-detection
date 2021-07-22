@@ -47,11 +47,13 @@ while True:
     # Crop the center 416 x 416
     # frame = cv2.resize(frame, (416, 416))
     frame = frame[int(frame.shape[0]/2 - 208):int(frame.shape[0]/2+208), int(frame.shape[1]/2 - 208):int(frame.shape[1]/2+208), :]
-    
+
+    # By default the image from OpenCV is in BGR format
     frame = Image.fromarray(np.uint8(frame))
     b, g, r = frame.split()
     frame = np.array(Image.merge("RGB", (r, g, b)))
 
+    # Convert image to base64 string and send to server
     sio.emit('frame', {'image': img2base64(frame)})
 
     # cv2.imshow("Test", np.uint8(frame))

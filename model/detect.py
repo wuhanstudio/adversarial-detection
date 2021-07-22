@@ -58,11 +58,15 @@ def connect(sid, environ):
 @sio.on('fix_patch')
 def fix_patch(self, data):
     if(data > 0):
+        # Stop iterating if we choose to fix the patch
         adv_detect.fixed = True
+
+        # Save each patch
         adv_detect.patches = []
         patch_cv_image = np.zeros((416, 416, 3))
         for box in adv_detect.adv_patch_boxes:
             if adv_detect.monochrome:
+                # For black and white images R==G==B
                 patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 0] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
                 patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 1] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
                 patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 2] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
@@ -97,37 +101,40 @@ def add_patch(self, data):
 # Registering event handler for each frame
 @sio.on('frame')
 def frame(sid, data):
+    # Read the input image and pulish to the browser
     input_cv_image = Image.open(BytesIO(base64.b64decode(data["image"])))
     sio.emit('input', {'data': img2base64(input_cv_image)})
-    confidence_threshold = 0.01
-    font = cv2.FONT_HERSHEY_SIMPLEX
-
-    start_time = int(time.time() * 1000)
-
     input_cv_image = np.array(input_cv_image)
 
-    # get image shape
+    # For YOLO, the input pixel values are normalized to [0, 1]
     height, width, channels = input_cv_image.shape
-
     input_cv_image = input_cv_image.astype(np.float32) / 255.0
  
+    start_time = int(time.time() * 1000)
     outs = adv_detect.attack(input_cv_image)
 
     # Showing informations on the screen (YOLO)
-    anchors = [ [[116,90],  [156,198],  [373,326]], [[30,61],  [62,45],  [59,119]],  [[10,13],  [16,30],  [33,23]] ]
+    # The output of YOLO consists of three scales, each scale has three anchor boxes
+    anchors = [ 
+                [[116,90],  [156,198],  [373,326]], 
+                [[30,61],  [62,45],  [59,119]],  
+                [[10,13],  [16,30],  [33,23]] 
+              ]
+    # For different scales, we need to calculate the actual size of three potential anchor boxes
     for anchor_i, out in enumerate(outs):
         class_ids = []
         confidences = []
         boxes = []
         scores = []
+
         anchor = anchors[anchor_i]
-        # anchors = [[12., 16.], [19., 36.], [40., 28.]]
-        # anchors = [[10., 14.],  [23., 27.],  [37., 58.]]
-        # num_anchors = int(out.shape[-1] / (5+len(classes)))
         num_anchors = len(anchor)
+
         grid_size = np.shape(out)[1:3]
         out = out.reshape((-1, 5+len(classes)))
-        # generate x_y_offset grid map
+
+        # The output of each bounding box is relative to the grid
+        # Thus we need to add an offset to retrieve absolute coordinates
         grid_y = np.arange(grid_size[0])
         grid_x = np.arange(grid_size[1])
         x_offset, y_offset = np.meshgrid(grid_x, grid_y)
@@ -141,19 +148,24 @@ def frame(sid, data):
 
         anchor = np.tile(anchor, (grid_size[0] * grid_size[1], 1))
 
+        # The output format of each bounding box is (x, y, w, h)
         box_xy = (expit(out[..., :2]) + x_y_offset) / np.array(grid_size)[::-1]
         box_wh = (np.exp(out[..., 2:4]) * anchor) / np.array((height, width))[::-1]
 
+        # Calculate the confidence value of each bounding box
         score = expit(out[:, 5:])
         class_id = np.argmax(score, axis=1)
         score = score[class_id][:, 0]
         confidence = score * expit(out[:, 4])
 
+        # We are only interested with the box with high confidence
+        confidence_threshold = 0.01
         box_xy = box_xy[confidence > confidence_threshold]
         box_wh = box_wh[confidence > confidence_threshold]
         class_id = class_id[confidence > confidence_threshold]
         score = score[confidence > confidence_threshold]
         confidence = confidence[confidence > confidence_threshold]
+
         if(len(confidence) > 0):
             box_tmp = list(np.concatenate((box_xy, box_wh), axis=1))
             for b in box_tmp:
@@ -164,19 +176,12 @@ def frame(sid, data):
                 scores.append(float(s))
             for c in class_id:
                 class_ids.append(c)
-            # if(len(confidence > 1)):
-                # now = datetime.now()
-                # current_time = now.strftime("%H-%M-%S-%f")
-                # cv2.imwrite(current_time + '.jpg', self.noise * 255.0)
 
+        # Eliminate the boxes with low confidence and overlaped boxes
         indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
 
-        detected = False
         for i in range(len(boxes)):
             if i in indexes:
-                detected = True
-                # self.detect_pub.publish(class_ids[i]+1)
-
                 x, y, w, h = boxes[i]
                 x = x - w / 2
                 y = y - h / 2
@@ -186,16 +191,18 @@ def frame(sid, data):
                 h = int(h * height) 
                 label = str(classes[class_ids[i]]) + "=" + str(round(confidences[i]*100, 2)) + "%"
                 print(label)
+                
+                # Draw the bounding box on the image with label
                 cv2.rectangle(input_cv_image, (x, y), (x + w, y + h), (255,0,0), 2)
-                cv2.putText(input_cv_image, label, (x, y), font, 0.5, (255,0,0), 2)
-
-    #     # if not detected:
-    #         # self.detect_pub.publish(0)
+                cv2.putText(input_cv_image, label, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
 
     elapsed_time = int(time.time()*1000) - start_time
     fps = 1000 / elapsed_time
     print ("fps: ", str(round(fps, 2)))
+
+    # Send the output image to the browser
     sio.emit('adv', {'data': img2base64(input_cv_image*255.0)})
+
     # cv2.imshow("result", input_cv_image)
     # cv2.waitKey(1)
 

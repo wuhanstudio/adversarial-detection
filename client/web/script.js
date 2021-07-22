@@ -88,6 +88,7 @@ $(document).ready(function () {
         });
     
         $(document).on('mouseup', '#canvas', function(){
+            // if drawing a rectangle using drag and drop
             if(!move){
                 drag = false;
                 box = [-1, Math.round(rect.startX), Math.round(rect.startY), Math.round(rect.w), Math.round(rect.h)]
@@ -99,6 +100,7 @@ $(document).ready(function () {
                 box.h = rect.h
                 boxes.push(box)
             }
+            // If moving an exisiting box, update the position
             else {
                 move = false;
                 box = [box_index, Math.round(boxes[box_index].startX), Math.round(boxes[box_index].startY), Math.round(boxes[box_index].w), Math.round(boxes[box_index].h)]
@@ -111,12 +113,14 @@ $(document).ready(function () {
             boxes.forEach(b => {
                 ctx.fillRect(b.startX, b.startY, b.w, b.h);
             });
+            // if drawing a rectangle using drag and drop
             if (drag) {
                 rect.w = (e.pageX - $("#canvas").offset().left)- rect.startX;
                 rect.h = (e.pageY - $("#canvas").offset().top)- rect.startY;
                 ctx.fillStyle = 'rgba(0,0,0,0.5)';
                 ctx.fillRect(rect.startX, rect.startY, rect.w, rect.h);
             }
+            // If moving an exisiting box
             if (move) {
                 boxes[box_index].startX += ((e.pageX - $("#canvas").offset().left) - startX);
                 boxes[box_index].startY += ((e.pageY - $("#canvas").offset().top) - startY);

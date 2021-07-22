@@ -45,6 +45,7 @@ class AdversarialDetection:
                         loss = tf.reduce_sum(K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, i+5]))
                     else:
                         loss = loss + tf.reduce_sum(K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, i+5]))
+
             grads = K.gradients(loss, self.model.input)
             if self.delta == None:
                 self.delta =  K.sign(grads[0])
@@ -56,7 +57,7 @@ class AdversarialDetection:
 
         # loss = K.sum(K.abs((self.model.input-K.mean(self.model.input))))
 
-        # Random Noises
+        # Reduce Random Noises
         loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input))
 
         # Mirror
@@ -65,12 +66,11 @@ class AdversarialDetection:
         grads = K.gradients(loss, self.model.input)
         self.delta = self.delta + K.sign(grads[0])
 
-        self.iter = 0
-
         self.sess = tf.compat.v1.keras.backend.get_session()
 
     def attack(self, input_cv_image):
         with self.graph.as_default():
+            # Draw each adversarial patch on the input image
             if not self.fixed:
                 for box in self.adv_patch_boxes:
                     if self.monochrome:
@@ -80,6 +80,7 @@ class AdversarialDetection:
                     else:
                         input_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] = self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
             else:
+                # If the patch is fixed, just draw previous saved patches
                 ib = 0
                 for box in self.adv_patch_boxes:
                     if self.monochrome:
@@ -93,9 +94,9 @@ class AdversarialDetection:
             if(len(self.adv_patch_boxes) > 0 and (not self.fixed)):
                 grads = self.sess.run(self.delta, feed_dict={self.model.input:np.array([input_cv_image])}) / 255.0
                 if self.monochrome:
+                    # For monochrome images, we average the gradients over RGB channels
                     self.noise = self.noise + 5 / 3 * (grads[0, :, :, 0] + grads[0, :, :, 1] + grads[0, :, :, 2])
                 else:
                     self.noise = self.noise + 5 * grads[0, :, :, :]
-                self.iter = self.iter + 1
 
             return self.sess.run(self.model.output, feed_dict={self.model.input:np.array([input_cv_image])})
