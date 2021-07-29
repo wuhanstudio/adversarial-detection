@@ -74,7 +74,7 @@ def fix_patch(self, data):
                 patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
             adv_detect.patches.append(adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])])
         # Publish the patch image
-        sio.emit('patch', {'data': img2base64(patch_cv_image*255.0)})
+        sio.emit('patch', {'data': img2base64(patch_cv_image*255.0), 'boxes': adv_detect.adv_patch_boxes})
     else:
         adv_detect.fixed = False
 
@@ -209,7 +209,6 @@ def frame(sid, data):
 if __name__ == '__main__':
     # Parse arguments
     parser = argparse.ArgumentParser(description='Adversarial Detection')
-    parser = argparse.ArgumentParser(description='Object Detection')
     parser.add_argument('--model', help='deep learning model', type=str, required=True)
     parser.add_argument('--class_name', help='class names', type=str, required=True)
     parser.add_argument('--attack', help='adversarial attacks type', choices=['one_targeted', 'multi_targeted', 'multi_untargeted'], type=str, required=False, default="multi_untargeted")

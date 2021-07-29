@@ -1,0 +1,3 @@
+[submodule "camera/esp32-st7735"]
+	path = camera/esp32-st7735
+	url = https://github.com/wuhanstudio/esp32-st7735

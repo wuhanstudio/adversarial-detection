@@ -62,7 +62,7 @@ class AdversarialDetection:
 
         # Mirror
         # loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input)) - 0.01 * tf.reduce_sum(K.abs(self.model.input - tf.image.flip_left_right(self.model.input)))
- 
+
         grads = K.gradients(loss, self.model.input)
         self.delta = self.delta + K.sign(grads[0])
 
@@ -98,5 +98,5 @@ class AdversarialDetection:
                     self.noise = self.noise + 5 / 3 * (grads[0, :, :, 0] + grads[0, :, :, 1] + grads[0, :, :, 2])
                 else:
                     self.noise = self.noise + 5 * grads[0, :, :, :]
-
+                self.noise = np.clip(self.noise, 0.0, 1.0)
             return self.sess.run(self.model.output, feed_dict={self.model.input:np.array([input_cv_image])})
