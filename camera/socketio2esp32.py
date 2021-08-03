@@ -1,3 +1,4 @@
+import argparse
 import socket
 
 import socketio
@@ -12,6 +13,8 @@ from PIL import Image
 
 import numpy as np
 
+ip = '127.0.0.1'
+port = 9191
 adv_patch_boxes = []
 
 def send_img(ip, port, img):
@@ -57,10 +60,18 @@ def patch(data):
     patch = image_np[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
     patch = Image.fromarray(patch)
     patch.show()
-    send_img('192.168.199.142', 9191, np.array(patch).astype(np.uint8))
+    send_img(ip, port, np.array(patch).astype(np.uint8))
 
-sio.connect('http://192.168.199.100:9090')
+parser = argparse.ArgumentParser(description='ESP32 ST7735 Bridge')
+parser.add_argument('--ip', help='ESP32 IP Address', type=str, required=True)
+parser.add_argument('--port', help='ESP32 Port', type=str, required=True)
+args = parser.parse_args()
 
-image = Image.open('camera/lena.bmp')
-print(np.array(image).shape)
-send_img('192.168.199.142', 9191, np.array(image).astype(np.uint8))
+ip = args.ip
+port = int(args.port)
+
+sio.connect('http://localhost:9090')
+
+# image = Image.open('camera/lena.bmp')
+# print(np.array(image).shape)
+# send_img('192.168.199.142', 9191, np.array(image).astype(np.uint8))

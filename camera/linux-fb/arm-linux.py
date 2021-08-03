@@ -1,3 +1,4 @@
+import argparse
 import socketio
 from time import sleep
 
@@ -41,9 +42,9 @@ def patch(data):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Raspi ST7735 Client')
-    parser.add_argument('--ip', help='Raspi IP Address', type=str, required=True)
-    parser.add_argument('--port', help='Raspi Port', type=str, required=True)
+    parser = argparse.ArgumentParser(description='Raspi Framebuffer Client')
+    parser.add_argument('--ip', help='Server IP Address', type=str, required=True)
+    parser.add_argument('--port', help='Server Port', type=str, required=True)
     args = parser.parse_args()
 
     sio.connect('http://' + args.ip + ':' + args.port)
