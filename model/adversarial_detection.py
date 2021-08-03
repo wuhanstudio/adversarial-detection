@@ -98,5 +98,5 @@ class AdversarialDetection:
                     self.noise = self.noise + 5 / 3 * (grads[0, :, :, 0] + grads[0, :, :, 1] + grads[0, :, :, 2])
                 else:
                     self.noise = self.noise + 5 * grads[0, :, :, :]
-                self.noise = np.clip(self.noise, 0.0, 1.0)
+                # self.noise = np.clip(self.noise, 0.0, 1.0)
             return self.sess.run(self.model.output, feed_dict={self.model.input:np.array([input_cv_image])})

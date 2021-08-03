@@ -10,6 +10,7 @@ dependencies:
   - pip:
     - eventlet==0.29.1
     - flask-socketio==4.3.1
+    - h5py==2.10.0
     - keras==2.4.3
     - numpy==1.21.1
     - opencv-python==4.5.3.56
