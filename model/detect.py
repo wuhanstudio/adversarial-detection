@@ -22,8 +22,8 @@ import base64
 # Deep Learning Libraries
 import numpy as np
 np.set_printoptions(suppress=True)
-from keras.models import load_model
-from scipy.special import expit, softmax
+
+from scipy.special import expit
 import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
 import keras.backend as K
@@ -51,52 +51,29 @@ def img2base64(image):
 def connect(sid, environ):
     print("connect ", sid)
 
-@sio.on('connect')
-def connect(sid, environ):
-    print("connect ", sid)
-
 @sio.on('fix_patch')
-def fix_patch(self, data):
+def fix_patch(sid, data):
     if(data > 0):
         # Stop iterating if we choose to fix the patch
         adv_detect.fixed = True
-
-        # Save each patch
-        adv_detect.patches = []
-        patch_cv_image = np.zeros((416, 416, 3))
-        for box in adv_detect.adv_patch_boxes:
-            if adv_detect.monochrome:
-                # For black and white images R==G==B
-                patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 0] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
-                patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 1] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
-                patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 2] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
-            else:
-                patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
-            adv_detect.patches.append(adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])])
-        # Publish the patch image
-        sio.emit('patch', {'data': img2base64(patch_cv_image*255.0), 'boxes': adv_detect.adv_patch_boxes})
     else:
         adv_detect.fixed = False
 
 @sio.on('clear_patch')
-def clear_patch(self, data):
+def clear_patch(sid, data):
     if(data > 0):
-        adv_detect.adv_patch_boxes = []
-        adv_detect.patches = []
         if adv_detect.monochrome:
             adv_detect.noise = np.zeros((416, 416))
         else:
             adv_detect.noise = np.zeros((416, 416, 3))
         adv_detect.iter = 0
 
-@sio.on('add_patch')
-def add_patch(self, data):
-    box = data[1:]
-    if(data[0] < 0):
-        adv_detect.adv_patch_boxes.append(box)
-        adv_detect.iter = 0
-    else:
-        adv_detect.adv_patch_boxes[data[0]] = box
+@sio.on('save_patch')
+def save_patch(sid):
+    if adv_detect:
+        with open('noise.npy', 'wb') as f:
+            np.save(f, adv_detect.noise)
+    print('Saved Filter')
 
 # Registering event handler for each frame
 @sio.on('frame')
@@ -111,7 +88,7 @@ def frame(sid, data):
     input_cv_image = input_cv_image.astype(np.float32) / 255.0
  
     start_time = int(time.time() * 1000)
-    outs = adv_detect.attack(input_cv_image)
+    input_cv_image, outs = adv_detect.attack(input_cv_image)
 
     # Showing informations on the screen (YOLO)
     # The output of YOLO consists of three scales, each scale has three anchor boxes
@@ -202,6 +179,10 @@ def frame(sid, data):
 
     # Send the output image to the browser
     sio.emit('adv', {'data': img2base64(input_cv_image*255.0)})
+
+    input_cv_image = Image.fromarray(np.uint8(input_cv_image*255.0))
+    b, g, r = input_cv_image.split()
+    input_cv_image = np.array(Image.merge("RGB", (r, g, b)))
 
     # cv2.imshow("result", input_cv_image)
     # cv2.waitKey(1)

@@ -13,6 +13,7 @@ class AdversarialDetection:
         self.epsilon = 1
         self.graph = tf.compat.v1.get_default_graph()
         self.monochrome = monochrome
+        self.use_filter = False
 
         if self.monochrome:
             self.noise = np.zeros((416, 416))
@@ -68,35 +69,42 @@ class AdversarialDetection:
 
         self.sess = tf.compat.v1.keras.backend.get_session()
 
+    # Deep Fool: Project on the lp ball centered at 0 and of radius xi
+    def proj_lp(self, v, xi=50, p=2):
+
+        # SUPPORTS only p = 2 and p = Inf for now
+        if p == 2:
+            v = v * min(1, xi/np.linalg.norm(v.flatten('C')))
+            # v = v / np.linalg.norm(v.flatten(1)) * xi
+        elif p == np.inf:
+            v = np.sign(v) * np.minimum(abs(v), xi)
+        else:
+            raise ValueError('Values of p different from 2 and Inf are currently not supported...')
+
+        return v
+
     def attack(self, input_cv_image):
         with self.graph.as_default():
             # Draw each adversarial patch on the input image
-            if not self.fixed:
-                for box in self.adv_patch_boxes:
-                    if self.monochrome:
-                        input_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 0] = self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
-                        input_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 1] = self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
-                        input_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 2] = self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
-                    else:
-                        input_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] = self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
+            if self.monochrome:
+                input_cv_image[:, :, 0] = input_cv_image[:, :, 0] + self.noise
+                input_cv_image[:, :, 1] = input_cv_image[:, :, 0] + self.noise
+                input_cv_image[:, :, 2] = input_cv_image[:, :, 0] + self.noise
             else:
-                # If the patch is fixed, just draw previous saved patches
-                ib = 0
-                for box in self.adv_patch_boxes:
-                    if self.monochrome:
-                        input_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 0] = self.patches[ib]
-                        input_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 1] = self.patches[ib]
-                        input_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 2] = self.patches[ib]
-                    else:
-                        input_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] = self.patches[ib]
-                    ib = ib + 1
+                input_cv_image = input_cv_image + self.noise
 
-            if(len(self.adv_patch_boxes) > 0 and (not self.fixed)):
+            if not self.fixed:
                 grads = self.sess.run(self.delta, feed_dict={self.model.input:np.array([input_cv_image])}) / 255.0
                 if self.monochrome:
                     # For monochrome images, we average the gradients over RGB channels
                     self.noise = self.noise + 5 / 3 * (grads[0, :, :, 0] + grads[0, :, :, 1] + grads[0, :, :, 2])
                 else:
                     self.noise = self.noise + 5 * grads[0, :, :, :]
-                # self.noise = np.clip(self.noise, 0.0, 1.0)
-            return self.sess.run(self.model.output, feed_dict={self.model.input:np.array([input_cv_image])})
+
+                self.noise = np.clip(self.noise, -1.0, 1.0)
+
+                self.noise = self.proj_lp(self.noise, xi=0.1, p = np.inf)
+
+            input_cv_image = np.clip(input_cv_image, 0, 1)
+
+            return input_cv_image, self.sess.run(self.model.output, feed_dict={self.model.input:np.array([input_cv_image])})

@@ -1,17 +1,18 @@
-import socketio
-import cv2
-from time import sleep
-
-# Data IO and Encoding-Decoding
-from io import BytesIO
-import base64
+import argparse
 
 # Image Processing
+import cv2
+import numpy as np
 from PIL import Image
 
-import numpy as np
+# Data IO and Encoding-Decoding
+import base64
+import socketio
+from io import BytesIO
 
 sio = socketio.Client()
+
+noise = None
 
 # From image to base64 string
 def img2base64(image):
@@ -29,32 +30,49 @@ def connect():
 def disconnect():
     print('disconnected from server')
 
+# Parse arguments
+parser = argparse.ArgumentParser(description='Adversarial Detection Camera')
+parser.add_argument('--camera', help='camera index', type=int, default=0)
+parser.add_argument('--noise', help='noises (0.0, 1.0) in numpy format (*.npy)', type=str, required=False)
+args = parser.parse_args()
+
+if args.noise:
+    noise = np.load(args.noise)
+
 sio.connect('http://localhost:9090')
 
 # Capture frame-by-frame (the latest one)
-# cam = cv2.VideoCapture("http://192.168.199.240:4747/mjpegfeed?640x480")
-
-# Capture frame-by-frame (the latest one)
-# cam = cv2.VideoCapture(0)
+cam = cv2.VideoCapture(args.camera)
 
 while True:
-    cam = cv2.VideoCapture(0)
+
     ret, frame = cam.read()
     if not ret:
         print("failed to grab frame")
         continue
 
     # Crop the center 416 x 416
-    # frame = cv2.resize(frame, (416, 416))
     frame = frame[int(frame.shape[0]/2 - 208):int(frame.shape[0]/2+208), int(frame.shape[1]/2 - 208):int(frame.shape[1]/2+208), :]
+    
+    # Resize the image
+    # frame = cv2.resize(frame, (416, 416))
 
-    # By default the image from OpenCV is in BGR format
+    # BGR to RGB
     frame = Image.fromarray(np.uint8(frame))
     b, g, r = frame.split()
     frame = np.array(Image.merge("RGB", (r, g, b)))
 
+    # Float to uint8
+    frame = frame.astype(np.float32) / 255.0
+
+    # Test perturbation
+    if noise is not None:
+        frame = frame + noise
+
+    frame = (np.clip(frame, 0, 1) * 255).astype(np.uint8)
+
     # Convert image to base64 string and send to server
     sio.emit('frame', {'image': img2base64(frame)})
 
-    # cv2.imshow("Test", np.uint8(frame))
+    # cv2.imshow("Camera", np.uint8(frame))
     # cv2.waitKey(1)

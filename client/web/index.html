@@ -48,26 +48,15 @@
                 <h4>Adversarial Image</h4>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <canvas id="canvas" width="416px" height="416px"></canvas>
-                <h4>Perturbation</h4>
-            </div>
-            <div class="col-md-6">
-                <img id="patch" width="416px" height="416px"></img>
-                <h4>Patch</h4>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
 
+        <div class="row">
+            <div class="col-md-6">
+                <div class="btn btn-primary" onclick="start_attack()">Start</div>
+                <div class="btn btn-success" onclick="pause_attack()">Pause</div>
+                <div class="btn btn-danger" onclick="stop_attack()">Clear</div>
             </div>
             <div class="col-md-6">
-                <div class="btn btn-primary" onclick="clear_patch()">Clear Patch</div>
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="customCheck1">
-                    <label class="custom-control-label" for="customCheck1">Fix patch</label>
-                </div>
+                <div class="btn btn-info" onclick="save_patch()">Save Filter</div>
             </div>
         </div>
         <hr />
