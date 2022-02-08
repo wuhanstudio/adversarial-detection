@@ -42,14 +42,35 @@ if __name__ == '__main__':
 
     # define a video capture object
     vid = cv2.VideoCapture(0)
+    vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
   
     while(True):
           
         # Capture the video frame
-        # by frame
         ret, input_cv_image = vid.read()
-        # input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
-        input_cv_image = input_cv_image[int(input_cv_image.shape[0]/2 - 208):int(input_cv_image.shape[0]/2+208), int(input_cv_image.shape[1]/2 - 208):int(input_cv_image.shape[1]/2+208), :]
+
+        input_cv_image = input_cv_image.astype(np.float32) / 255.0
+
+
+        # Add noise
+        if noise is not None:
+            height, width, channel = input_cv_image.shape
+
+            # noise 416x416
+            input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
+            input_cv_image = input_cv_image + noise
+            input_cv_image = cv2.resize(input_cv_image, (height, width), interpolation = cv2.INTER_AREA)
+
+            # noise 720p
+            # noises = np.zeros((height, width, channel))
+            # noises[ (int(height / 2) - int(noise.shape[0] / 2)):(int(height / 2) + int(noise.shape[0] / 2)), (int(width / 2) - int(noise.shape[1] / 2)):(int(width / 2) + int(noise.shape[1] / 2)), :] = noise
+            # input_cv_image = input_cv_image + noises
+
+        input_cv_image = np.clip(input_cv_image, 0, 1)
+
+        input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
+        # input_cv_image = input_cv_image[int(input_cv_image.shape[0]/2 - 208):int(input_cv_image.shape[0]/2+208), int(input_cv_image.shape[1]/2 - 208):int(input_cv_image.shape[1]/2+208), :]
 
         # Read the input image and pulish to the browser
         input_cv_image = np.array(input_cv_image)
@@ -58,14 +79,11 @@ if __name__ == '__main__':
         height, width, channels = input_cv_image.shape
      
         start_time = int(time.time() * 1000)
-        input_cv_image = Image.fromarray(np.uint8(input_cv_image))
+        input_cv_image = Image.fromarray(np.uint8(input_cv_image * 255.0))
         b, g, r = input_cv_image.split()
         input_cv_image = np.array(Image.merge("RGB", (r, g, b)))
 
         input_cv_image = input_cv_image.astype(np.float32) / 255.0
-        if noise is not None:
-            input_cv_image = input_cv_image + noise
-
         input_cv_image = np.clip(input_cv_image, 0, 1)
 
         outs = sess.run(model.output, feed_dict={model.input:np.array([input_cv_image])})

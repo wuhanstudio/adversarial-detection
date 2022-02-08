@@ -101,8 +101,8 @@ def adversarial_detection_thread():
         if not success:
             break
 
-        # input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
-        input_cv_image = input_cv_image[int(input_cv_image.shape[0]/2 - 208):int(input_cv_image.shape[0]/2+208), int(input_cv_image.shape[1]/2 - 208):int(input_cv_image.shape[1]/2+208), :]
+        input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
+        # input_cv_image = input_cv_image[int(input_cv_image.shape[0]/2 - 208):int(input_cv_image.shape[0]/2+208), int(input_cv_image.shape[1]/2 - 208):int(input_cv_image.shape[1]/2+208), :]
 
         input_cv_image = np.array(input_cv_image)
 
