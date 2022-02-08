@@ -28,6 +28,9 @@ tf.compat.v1.disable_eager_execution()
 classes = []
 adv_detect = None
 
+# Initialize the camera
+camera = cv2.VideoCapture(0)
+
 # Initialize the server
 sio = socketio.Server(cors_allowed_origins='*')
 
@@ -35,9 +38,9 @@ sio = socketio.Server(cors_allowed_origins='*')
 app = Flask(__name__)
 CORS(app)
 
-camera = cv2.VideoCapture(0)
-
 root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
+
+# Static website
 
 @app.route('/<path:path>', methods=['GET'])
 def static_proxy(path):
@@ -46,6 +49,8 @@ def static_proxy(path):
 @app.route('/', methods=['GET'])
 def redirect_to_index():
     return send_from_directory(root, 'index.html')
+
+# Websocket server
 
 @sio.on('connect')
 def connect(sid, environ):
@@ -73,11 +78,22 @@ def clear_patch(sid, data):
 @sio.on('save_patch')
 def save_patch(sid):
     if adv_detect:
-        with open('noise/noise.npy', 'wb') as f:
-            np.save(f, adv_detect.noise)
+        # tiled_noise = np.tile(adv_detect.noise, (4, 4, 1))
+        # noise_360p = tiled_noise[0:360, 0:640, :]
+        # noise_720p = tiled_noise[0:720, 0:1280, :]
+
+        noise_360p = np.zeros((360, 640, 3))
+        noise_720p = np.zeros((720, 1280, 3))
+        noise_360p[:, (320-208):(320+208), :] = adv_detect.noise[0:360, :, :]
+        noise_720p[(360-208):(360+208), (640-208):(640+208), :] = adv_detect.noise[:, :, :]
+
+        np.save('noise/noise.npy', adv_detect.noise)
+        np.save('noise/noise_360p.npy', noise_360p)
+        np.save('noise/noise_720p.npy', noise_720p)
     print('Saved Filter')
 
-def gen_frames():  
+# Detetion thread
+def adversarial_detection_thread():  
     global adv_detect
     while(True): 
         # Capture the video frame
@@ -191,7 +207,8 @@ def gen_frames():
         cv2.imshow("result", input_cv_image)
         cv2.waitKey(1)
 
-def start_server():
+# Websocket thread
+def websocket_server_thread():
     global app
     # wrap Flask application with engineio's middleware
     app = socketio.Middleware(sio, app)
@@ -209,17 +226,17 @@ if __name__ == '__main__':
     parser.add_argument('--monochrome', action='store_true', help='monochrome patch')
     args = parser.parse_args()
 
+    # Read class names
     with open(args.class_name) as f:
         content = f.readlines()
     classes = [x.strip() for x in content] 
 
     adv_detect = AdversarialDetection(args.model, args.attack, args.monochrome, classes)
 
-    # turn-on the worker thread
-    t1 = threading.Thread(target=gen_frames, daemon=True)
+    t1 = threading.Thread(target=adversarial_detection_thread, daemon=True)
     t1.start()
 
-    t2 = threading.Thread(target=start_server, daemon=True)
+    t2 = threading.Thread(target=websocket_server_thread, daemon=True)
     t2.start()
 
     t1.join()

@@ -34,6 +34,9 @@ function stop_attack() {
 
 function save_patch() {
     socket.emit('save_patch');
+    new simpleSnackbar('Filter Saved', {
+        type: 'info',
+    }).show();
 }
 
 $(document).ready(function () {
