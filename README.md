@@ -2,11 +2,9 @@
 
 > Real-time adversarial attacks against Object Detection.
 
-![](doc/filter.jpg)
-
-### Overview
-
 ![](doc/web.png)
+
+![](doc/filter.jpg)
 
 ### Quick Start
 
