@@ -78,18 +78,9 @@ def clear_patch(sid, data):
 @sio.on('save_patch')
 def save_patch(sid):
     if adv_detect:
-        # tiled_noise = np.tile(adv_detect.noise, (4, 4, 1))
-        # noise_360p = tiled_noise[0:360, 0:640, :]
-        # noise_720p = tiled_noise[0:720, 0:1280, :]
-
-        noise_360p = np.zeros((360, 640, 3))
-        noise_720p = np.zeros((720, 1280, 3))
-        noise_360p[:, (320-208):(320+208), :] = adv_detect.noise[0:360, :, :]
-        noise_720p[(360-208):(360+208), (640-208):(640+208), :] = adv_detect.noise[:, :, :]
-
         np.save('noise/noise.npy', adv_detect.noise)
-        np.save('noise/noise_360p.npy', noise_360p)
-        np.save('noise/noise_720p.npy', noise_720p)
+        img = Image.fromarray(adv_detect.noise, 'RGB')
+        img.save('noise/noise.png')
     print('Saved Filter')
 
 # Detetion thread

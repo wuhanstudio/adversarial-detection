@@ -52,20 +52,12 @@ if __name__ == '__main__':
 
         input_cv_image = input_cv_image.astype(np.float32) / 255.0
 
-
         # Add noise
         if noise is not None:
             height, width, channel = input_cv_image.shape
-
-            # noise 416x416
-            input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
+            input_cv_image = cv2.resize(input_cv_image, (noise.shape[0], noise.shape[1]), interpolation = cv2.INTER_AREA)
             input_cv_image = input_cv_image + noise
             input_cv_image = cv2.resize(input_cv_image, (height, width), interpolation = cv2.INTER_AREA)
-
-            # noise 720p
-            # noises = np.zeros((height, width, channel))
-            # noises[ (int(height / 2) - int(noise.shape[0] / 2)):(int(height / 2) + int(noise.shape[0] / 2)), (int(width / 2) - int(noise.shape[1] / 2)):(int(width / 2) + int(noise.shape[1] / 2)), :] = noise
-            # input_cv_image = input_cv_image + noises
 
         input_cv_image = np.clip(input_cv_image, 0, 1)
 
