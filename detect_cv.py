@@ -1,21 +1,17 @@
-import argparse
 import time
-
-import cv2
-import atexit
+import argparse
 
 # Image Processing
+import cv2
 from PIL import Image
-
 
 # Deep Learning Libraries
 import numpy as np
 np.set_printoptions(suppress=True)
 from keras.models import load_model
-from scipy.special import expit, softmax
+from scipy.special import expit
 import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
-import keras.backend as K
 
 classes = []
 noise = None
