@@ -21,7 +21,7 @@ class AdversarialDetection:
             self.noise = np.zeros((416, 416, 3))
 
         self.adv_patch_boxes = []
-        self.fixed = False
+        self.fixed = True
 
         self.model = load_model(model)
         self.model.summary()
