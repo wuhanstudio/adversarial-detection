@@ -38,7 +38,8 @@ def draw_bounding_box(img, boxes, confidences, class_ids, class_names):
         # Draw the bounding box on the image with label
         cv2.rectangle(img, (x, y), (x + w, y + h), COLORS[class_ids[i]], 2)
         cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[class_ids[i]], 2)
-        return img
+    
+    return img
 
 def yolo_process_output(outs, anchors, num_classes):
     # The output of YOLO consists of three scales, each scale has three anchor boxes
@@ -100,8 +101,11 @@ def yolo_process_output(outs, anchors, num_classes):
 
     # Eliminate the boxes with low confidence and overlaped boxes
     indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
-    boxes = [boxes[i[0]] for i in indexes]
-    confidences = [confidences[i[0]] for i in indexes]
-    class_ids = [class_ids[i[0]] for i in indexes]
+    if len(indexes) > 0:
+        indexes = indexes.flatten()
+
+    boxes = [boxes[i] for i in indexes]
+    confidences = [confidences[i] for i in indexes]
+    class_ids = [class_ids[i] for i in indexes]
 
     return boxes, class_ids, confidences
