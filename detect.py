@@ -91,6 +91,8 @@ def adversarial_detection_thread():
         success, input_cv_image = camera.read()  # read the camera frame
         if not success:
             break
+        
+        input_cv_image = cv2.cvtColor(input_cv_image, cv2.COLOR_BGR2RGB)
 
         input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
         # input_cv_image = input_cv_image[int(input_cv_image.shape[0]/2 - 208):int(input_cv_image.shape[0]/2+208), int(input_cv_image.shape[1]/2 - 208):int(input_cv_image.shape[1]/2+208), :]
@@ -102,6 +104,7 @@ def adversarial_detection_thread():
         input_cv_image = input_cv_image.astype(np.float32) / 255.0
     
         start_time = int(time.time() * 1000)
+
         input_cv_image, outs = adv_detect.attack(input_cv_image)
 
         # Showing informations on the screen (YOLO)
@@ -112,11 +115,11 @@ def adversarial_detection_thread():
                     [[10,13],  [16,30],  [33,23]] 
                 ]
         # For different scales, we need to calculate the actual size of three potential anchor boxes
+
+        class_ids = []
+        confidences = []
+        boxes = []
         for anchor_i, out in enumerate(outs):
-            class_ids = []
-            confidences = []
-            boxes = []
-            scores = []
 
             anchor = anchors[anchor_i]
             num_anchors = len(anchor)
@@ -144,13 +147,13 @@ def adversarial_detection_thread():
             box_wh = (np.exp(out[..., 2:4]) * anchor) / np.array((height, width))[::-1]
 
             # Calculate the confidence value of each bounding box
-            score = expit(out[:, 5:])
+            score = expit(out[:, 5:]) # class_scores
             class_id = np.argmax(score, axis=1)
-            score = score[class_id][:, 0]
-            confidence = score * expit(out[:, 4])
+            confidence = np.expand_dims(expit(out[:, 4]), -1) * score # class_score * objectness
+            confidence = np.max(confidence, axis=-1)
 
             # We are only interested with the box with high confidence
-            confidence_threshold = 0.01
+            confidence_threshold = 0.1
             box_xy = box_xy[confidence > confidence_threshold]
             box_wh = box_wh[confidence > confidence_threshold]
             class_id = class_id[confidence > confidence_threshold]
@@ -163,29 +166,28 @@ def adversarial_detection_thread():
                     boxes.append(b)
                 for c in confidence:
                     confidences.append(float(c))
-                for s in score:
-                    scores.append(float(s))
                 for c in class_id:
                     class_ids.append(c)
 
             # Eliminate the boxes with low confidence and overlaped boxes
             indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
 
-            for i in range(len(boxes)):
-                if i in indexes:
-                    x, y, w, h = boxes[i]
-                    x = x - w / 2
-                    y = y - h / 2
-                    x = int(x * width) 
-                    y = int(y * height)
-                    w = int(w * width) 
-                    h = int(h * height) 
-                    label = str(classes[class_ids[i]]) + "=" + str(round(confidences[i]*100, 2)) + "%"
-                    print(label)
-                    
-                    # Draw the bounding box on the image with label
-                    cv2.rectangle(input_cv_image, (x, y), (x + w, y + h), (255,0,0), 2)
-                    cv2.putText(input_cv_image, label, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
+
+        for i in range(len(boxes)):
+            if i in indexes:
+                x, y, w, h = boxes[i]
+                x = x - w / 2
+                y = y - h / 2
+                x = int(x * width) 
+                y = int(y * height)
+                w = int(w * width) 
+                h = int(h * height) 
+                label = str(classes[class_ids[i]]) + "=" + str(round(confidences[i]*100, 2)) + "%"
+                print(label)
+                
+                # Draw the bounding box on the image with label
+                cv2.rectangle(input_cv_image, (x, y), (x + w, y + h), (255,0,0), 2)
+                cv2.putText(input_cv_image, label, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 2)
 
         elapsed_time = int(time.time()*1000) - start_time
         fps = 1000 / elapsed_time
