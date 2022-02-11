@@ -15,6 +15,12 @@ yolov3_anchors = [
             [[10,13],  [16,30],  [33,23]] 
             ]
 
+yolov3_tiny_anchors = [ 
+            [[81,82],  [135,169],  [344,319]],  
+            [[10,14],  [23,27],  [37,58]] 
+            ]
+
+
 # function to draw bounding box on the detected object with class name
 def draw_bounding_box(img, boxes, confidences, class_ids, class_names):
     COLORS = np.random.uniform(0, 255, size=(len(class_names), 3))

@@ -6,7 +6,8 @@ import cv2
 import numpy as np
 from keras.models import load_model
 
-from yolov3 import yolov3_anchors, yolo_process_output, draw_bounding_box
+from yolov3 import yolov3_anchors, yolov3_tiny_anchors
+from yolov3 import yolo_process_output, draw_bounding_box
 
 classes = []
 noise = None
@@ -54,16 +55,15 @@ if __name__ == '__main__':
             input_cv_image = cv2.resize(input_cv_image, (height, width), interpolation = cv2.INTER_AREA)
             input_cv_image = input_cv_image.astype(np.float32) * 255.0
 
-        input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
-
         # For YOLO, the input pixel values are normalized to [0, 1]
+        input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
         input_cv_image = input_cv_image.astype(np.float32) / 255.0
 
         start_time = int(time.time() * 1000)
 
         # Yolo inference
         outs = model.predict(np.array([input_cv_image]))
-        boxes, class_ids, confidences = yolo_process_output(outs, yolov3_anchors, len(classes))
+        boxes, class_ids, confidences = yolo_process_output(outs, yolov3_tiny_anchors, len(classes))
 
         # Calculate FPS
         elapsed_time = int(time.time()*1000) - start_time
