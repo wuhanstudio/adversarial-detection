@@ -105,6 +105,6 @@ class AdversarialDetection:
 
                 self.noise = self.proj_lp(self.noise, xi=50, p = 2)
 
-            input_cv_image = np.clip(input_cv_image, 0, 1)
+            input_cv_image = np.clip(input_cv_image, 0, 1).astype(np.float32)
 
             return input_cv_image, self.sess.run(self.model.output, feed_dict={self.model.input:np.array([input_cv_image])})
