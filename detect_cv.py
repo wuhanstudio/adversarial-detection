@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
         # Yolo inference
         outs = model.predict(np.array([input_cv_image]))
-        boxes, class_ids, confidences = yolo_process_output(outs, yolov3_tiny_anchors, len(classes))
+        boxes, class_ids, confidences = yolo_process_output(outs, yolov3_anchors, len(classes))
 
         # Calculate FPS
         elapsed_time = int(time.time()*1000) - start_time
