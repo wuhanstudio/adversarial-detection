@@ -56,7 +56,7 @@ if __name__ == '__main__':
             input_cv_image = input_cv_image + noise
             input_cv_image = np.clip(input_cv_image, 0, 1)
             input_cv_image = cv2.resize(input_cv_image, (height, width), interpolation = cv2.INTER_AREA)
-            input_cv_image = input_cv_image.astype(np.float32) * 255.0
+            input_cv_image = (input_cv_image * 255.0).astype(np.uint8)
 
         # For YOLO, the input pixel values are normalized to [0, 1]
         input_cv_image = letterbox_resize(Image.fromarray(input_cv_image), (416, 416))
