@@ -6,6 +6,7 @@ import numpy as np
 np.set_printoptions(suppress=True)
 
 from scipy.special import expit
+from PIL import Image
 
 YOLOV3_INPUT_SIZE = 416
 
@@ -20,24 +21,89 @@ yolov3_tiny_anchors = [
             [[10,14],  [23,27],  [37,58]] 
             ]
 
+def letterbox_resize(image, target_size, return_padding_info=False):
+    """
+    Resize image with unchanged aspect ratio using padding
+    # Arguments
+        image: origin image to be resize
+            PIL Image object containing image data
+        target_size: target image size,
+            tuple of format (width, height).
+        return_padding_info: whether to return padding size & offset info
+            Boolean flag to control return value
+    # Returns
+        new_image: resized PIL Image object.
+        padding_size: padding image size (keep aspect ratio).
+            will be used to reshape the ground truth bounding box
+        offset: top-left offset in target image padding.
+            will be used to reshape the ground truth bounding box
+    """
+    src_w, src_h = image.size
+    target_w, target_h = target_size
+
+    # calculate padding scale and padding offset
+    scale = min(target_w/src_w, target_h/src_h)
+    padding_w = int(src_w * scale)
+    padding_h = int(src_h * scale)
+    padding_size = (padding_w, padding_h)
+
+    dx = (target_w - padding_w)//2
+    dy = (target_h - padding_h)//2
+    offset = (dx, dy)
+
+    # create letterbox resized image
+    image = image.resize(padding_size, Image.BICUBIC)
+    new_image = Image.new('RGB', target_size, (128,128,128))
+    new_image.paste(image, offset)
+
+    if return_padding_info:
+        return new_image, padding_size, offset
+    else:
+        return new_image
+
+def yolo_correct_boxes(boxes, img_shape, model_input_shape):
+    '''rescale predicition boxes back to original image shape'''
+    boxes = np.array(boxes)
+    box_xy = boxes[..., :2]
+    box_wh = boxes[..., 2:4]
+
+    # model_input_shape & image_shape should be (height, width) format
+    model_input_shape = np.array(model_input_shape, dtype='float32')
+    image_shape = np.array(img_shape, dtype='float32')
+
+    new_shape = np.round(image_shape * np.min(model_input_shape/image_shape))
+    offset = (model_input_shape-new_shape)/2./model_input_shape
+
+    scale = model_input_shape/new_shape
+
+    # reverse offset/scale to match (w,h) order
+    offset = offset[..., ::-1]
+    scale = scale[..., ::-1]
+
+    box_xy = (box_xy - offset) * scale
+    box_wh *= scale
+
+    # Convert centoids to top left coordinates
+    # box_xy -= box_wh / 2
+
+    return np.concatenate([box_xy, box_wh], axis=1)
 
 # function to draw bounding box on the detected object with class name
-def draw_bounding_box(img, boxes, confidences, class_ids, class_names):
-    COLORS = np.random.uniform(0, 255, size=(len(class_names), 3))
+def draw_bounding_box(img, boxes, confidences, class_ids, class_names, colors):
     for i in range(len(boxes)):
         x, y, w, h = boxes[i]
         x = x - w / 2
         y = y - h / 2
-        x = int(x * YOLOV3_INPUT_SIZE) 
-        y = int(y * YOLOV3_INPUT_SIZE)
-        w = int(w * YOLOV3_INPUT_SIZE) 
-        h = int(h * YOLOV3_INPUT_SIZE) 
+        x = int(x * img.shape[1])
+        y = int(y * img.shape[0])
+        w = int(w * img.shape[1])
+        h = int(h * img.shape[0])
         label = str(class_names[class_ids[i]]) + "=" + str(round(confidences[i]*100, 2)) + "%"
         print(label)
         
         # Draw the bounding box on the image with label
-        cv2.rectangle(img, (x, y), (x + w, y + h), COLORS[class_ids[i]], 2)
-        cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[class_ids[i]], 2)
+        cv2.rectangle(img, (x, y), (x + w, y + h), colors[class_ids[i]], 2)
+        cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colors[class_ids[i]], 2)
     
     return img
 

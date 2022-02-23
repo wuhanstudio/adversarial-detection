@@ -3,11 +3,12 @@ import argparse
 
 # Deep Learning Libraries
 import cv2
+from PIL import Image
 import numpy as np
 from keras.models import load_model
 
 from yolov3 import yolov3_anchors, yolov3_tiny_anchors
-from yolov3 import yolo_process_output, draw_bounding_box
+from yolov3 import yolo_process_output, letterbox_resize, yolo_correct_boxes, draw_bounding_box
 
 classes = []
 noise = None
@@ -29,6 +30,8 @@ if __name__ == '__main__':
         content = f.readlines()
     classes = [x.strip() for x in content] 
 
+    colors = np.random.uniform(0, 255, size=(len(classes), 3))
+
     if args.noise:
         noise = np.load(args.noise)
 
@@ -39,11 +42,11 @@ if __name__ == '__main__':
   
     while(True):
         # Capture the video frame
-        success, input_cv_image = vid.read()
+        success, origin_cv_image = vid.read()
         if not success:
             break
 
-        input_cv_image = cv2.cvtColor(input_cv_image, cv2.COLOR_BGR2RGB)
+        input_cv_image = cv2.cvtColor(origin_cv_image, cv2.COLOR_BGR2RGB)
 
         # Add noise
         if noise is not None:
@@ -56,14 +59,16 @@ if __name__ == '__main__':
             input_cv_image = input_cv_image.astype(np.float32) * 255.0
 
         # For YOLO, the input pixel values are normalized to [0, 1]
-        input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
-        input_cv_image = input_cv_image.astype(np.float32) / 255.0
+        input_cv_image = letterbox_resize(Image.fromarray(input_cv_image), (416, 416))
+        input_cv_image = np.array(input_cv_image).astype(np.float32) / 255.0
 
         start_time = int(time.time() * 1000)
 
         # Yolo inference
         outs = model.predict(np.array([input_cv_image]))
         boxes, class_ids, confidences = yolo_process_output(outs, yolov3_anchors, len(classes))
+        if(len(boxes) > 0):
+            boxes = yolo_correct_boxes(boxes, origin_cv_image.shape[:2], (416, 416))
 
         # Calculate FPS
         elapsed_time = int(time.time()*1000) - start_time
@@ -71,7 +76,6 @@ if __name__ == '__main__':
         print ("fps: ", str(round(fps, 2)))
 
         # Draw bounding boxes
-        out_img = cv2.cvtColor(input_cv_image, cv2.COLOR_RGB2BGR)
-        out_img = draw_bounding_box(out_img, boxes, confidences, class_ids, classes)
+        out_img = draw_bounding_box(origin_cv_image, boxes, confidences, class_ids, classes, colors)
         cv2.imshow("result", out_img)
         cv2.waitKey(1)

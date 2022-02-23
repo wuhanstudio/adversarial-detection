@@ -26,7 +26,7 @@ import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
 
 from yolov3 import yolov3_anchors, yolov3_tiny_anchors
-from yolov3 import yolo_process_output, draw_bounding_box
+from yolov3 import yolo_process_output, draw_bounding_box, letterbox_resize
 
 classes = []
 adv_detect = None
@@ -89,17 +89,19 @@ def save_patch(sid):
 # Detetion thread
 def adversarial_detection_thread():  
     global adv_detect
+    colors = np.random.uniform(0, 255, size=(len(classes), 3))
+
     while(True): 
         # Capture the video frame
-        success, input_cv_image = camera.read()  # read the camera frame
+        success, origin_cv_image = camera.read()  # read the camera frame
         if not success:
             break
-        
-        input_cv_image = cv2.cvtColor(input_cv_image, cv2.COLOR_BGR2RGB)
-        input_cv_image = cv2.resize(input_cv_image, (416, 416), interpolation = cv2.INTER_AREA)
+
+        input_cv_image = cv2.cvtColor(origin_cv_image, cv2.COLOR_BGR2RGB)
+        input_cv_image = letterbox_resize(Image.fromarray(input_cv_image), (416, 416))
 
         # For YOLO, the input pixel values are normalized to [0, 1]
-        input_cv_image = input_cv_image.astype(np.float32) / 255.0
+        input_cv_image = np.array(input_cv_image).astype(np.float32) / 255.0
 
         start_time = int(time.time() * 1000)
 
@@ -114,7 +116,7 @@ def adversarial_detection_thread():
 
         # Draw bounding boxes
         out_img = cv2.cvtColor(input_cv_image, cv2.COLOR_RGB2BGR)
-        out_img = draw_bounding_box(out_img, boxes, confidences, class_ids, classes)
+        out_img = draw_bounding_box(out_img, boxes, confidences, class_ids, classes, colors)
         cv2.imshow("result", out_img)
         cv2.waitKey(1)
 
