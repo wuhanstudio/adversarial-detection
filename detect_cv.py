@@ -82,29 +82,29 @@ if __name__ == '__main__':
         if not success:
             break
 
-        input_cv_image = cv2.cvtColor(origin_cv_image, cv2.COLOR_BGR2RGB)
+        origin_cv_image = cv2.cvtColor(origin_cv_image, cv2.COLOR_BGR2RGB)
 
         # Add noise
         if noise is not None:
-            input_cv_image = input_cv_image.astype(np.float32) / 255.0
-            height, width, _ = input_cv_image.shape
+            origin_cv_image = origin_cv_image.astype(np.float32) / 255.0
+            height, width, _ = origin_cv_image.shape
             # input_cv_image = cv2.resize(input_cv_image, (noise.shape[0], noise.shape[1]), interpolation = cv2.INTER_AREA)
             noise_r = bilinear_resize_vectorized(noise[:, :, 0], height, width)
             noise_g = bilinear_resize_vectorized(noise[:, :, 1], height, width)
             noise_b = bilinear_resize_vectorized(noise[:, :, 2], height, width)
             noise = np.dstack((noise_r, noise_g, noise_b))
 
-            input_cv_image = input_cv_image + noise
-            input_cv_image = np.clip(input_cv_image, 0, 1)
+            origin_cv_image = origin_cv_image + noise
+            origin_cv_image = np.clip(origin_cv_image, 0, 1)
 
             # input_cv_image = cv2.resize(input_cv_image, (width, height), interpolation = cv2.INTER_AREA)
-            input_cv_image = (input_cv_image * 255.0).astype(np.uint8)
+            origin_cv_image = (origin_cv_image * 255.0).astype(np.uint8)
 
         # For YOLO, the input pixel values are normalized to [0, 1]
         if args.letter_box:
-            input_cv_image = letterbox_resize(Image.fromarray(input_cv_image), (416, 416))
+            input_cv_image = letterbox_resize(Image.fromarray(origin_cv_image), (416, 416))
         else:
-            input_cv_image = cv2.resize(input_cv_image, (416, 416))
+            input_cv_image = cv2.resize(origin_cv_image, (416, 416))
 
         input_cv_image = np.array(input_cv_image).astype(np.float32) / 255.0
 
