@@ -26,7 +26,7 @@ import tensorflow as tf
 tf.compat.v1.disable_eager_execution()
 
 from yolov3 import yolov3_anchors, yolov3_tiny_anchors
-from yolov3 import yolo_process_output, draw_bounding_box, letterbox_resize
+from yolov3 import yolo_process_output, draw_bounding_box, letterbox_resize, yolo_correct_boxes
 
 classes = []
 adv_detect = None
@@ -98,9 +98,13 @@ def adversarial_detection_thread():
             break
 
         input_cv_image = cv2.cvtColor(origin_cv_image, cv2.COLOR_BGR2RGB)
-        input_cv_image = letterbox_resize(Image.fromarray(input_cv_image), (416, 416))
 
         # For YOLO, the input pixel values are normalized to [0, 1]
+        if args.letter_box:
+            input_cv_image = letterbox_resize(Image.fromarray(input_cv_image), (416, 416))
+        else:
+            input_cv_image = cv2.resize(input_cv_image, (416, 416))
+
         input_cv_image = np.array(input_cv_image).astype(np.float32) / 255.0
 
         start_time = int(time.time() * 1000)
@@ -137,6 +141,7 @@ if __name__ == '__main__':
     parser.add_argument('--class_name', help='class names', type=str, required=True)
     parser.add_argument('--attack', help='adversarial attacks type', choices=['one_targeted', 'multi_targeted', 'multi_untargeted'], type=str, required=False, default="multi_untargeted")
     parser.add_argument('--monochrome', action='store_true', help='monochrome patch')
+    parser.add_argument('--letter_box', action='store_true', help='use letter box resize')
     args = parser.parse_args()
 
     # Read class names
