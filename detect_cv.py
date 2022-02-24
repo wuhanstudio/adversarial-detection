@@ -123,7 +123,7 @@ if __name__ == '__main__':
         print ("fps: ", str(round(fps, 2)))
 
         # Draw bounding boxes
-        out_img = draw_bounding_box(origin_cv_image, boxes, confidences, class_ids, classes, colors)
+        out_img = draw_bounding_box(cv2.cvtColor(origin_cv_image, cv2.COLOR_RGB2BGR), boxes, confidences, class_ids, classes, colors)
         cv2.namedWindow("result", cv2.WINDOW_NORMAL)
         cv2.imshow("result", out_img)
         cv2.waitKey(1)
