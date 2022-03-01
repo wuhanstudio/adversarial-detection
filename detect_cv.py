@@ -54,11 +54,15 @@ if __name__ == '__main__':
     parser.add_argument('--model', help='deep learning model', type=str, required=True)
     parser.add_argument('--class_name', help='class names', type=str, required=True)
     parser.add_argument('--noise', help='noise', type=str, required=False)
+    parser.add_argument('--yolo', help='yolo version', type=int, default=3)
+    parser.add_argument('--tiny', action='store_true', help='tiny yolo')
     parser.add_argument('--letter_box', action='store_true', help='use letter box resize')
     args = parser.parse_args()
 
     # Load model
-    model = load_model(args.model)
+    if args.yolo == 3:
+        model = load_model(args.model)
+
     model.summary()
 
     # Read class names
@@ -70,6 +74,11 @@ if __name__ == '__main__':
 
     if args.noise:
         noise = np.load(args.noise)
+
+    if args.tiny:
+        anchors = yolov3_tiny_anchors
+    else:
+        anchors = yolov3_anchors
 
     # define a video capture object
     vid = cv2.VideoCapture(0)
@@ -112,7 +121,7 @@ if __name__ == '__main__':
 
         # Yolo inference
         outs = model.predict(np.array([input_cv_image]))
-        boxes, class_ids, confidences = yolo_process_output(outs, yolov3_anchors, len(classes))
+        boxes, class_ids, confidences = yolo_process_output(outs, anchors, len(classes))
 
         if(len(boxes) > 0 and args.letter_box):
             boxes = yolo_correct_boxes(boxes, origin_cv_image.shape[:2], (416, 416))
