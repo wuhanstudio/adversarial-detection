@@ -19,6 +19,6 @@ dependencies:
     - scipy==1.4.1
     - tensorboard==2.2.2
     - tensorboard-plugin-wit==1.8.0
-    - tensorflow==2.2.0
+    - tensorflow==2.4.0
     - tensorflow-estimator==2.2.0
     - websocket-client==1.1.0
