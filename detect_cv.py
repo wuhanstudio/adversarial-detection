@@ -6,12 +6,17 @@ import cv2
 from PIL import Image
 import numpy as np
 from keras.models import load_model
+import tensorflow.keras.backend as K
+import tensorflow as tf
 
 from yolov3 import yolov3_anchors, yolov3_tiny_anchors
 from yolov3 import yolo_process_output, letterbox_resize, yolo_correct_boxes, draw_bounding_box
 
 classes = []
 noise = None
+
+def mish(x):
+    return x * K.tanh(K.softplus(x))
 
 def bilinear_resize_vectorized(image, height, width):
   """
@@ -62,6 +67,16 @@ if __name__ == '__main__':
     # Load model
     if args.yolo == 3:
         model = load_model(args.model)
+    elif args.yolo == 4:
+        if args.tiny:
+            model = load_model(args.model, custom_objects = {
+                'tf': tf,
+                'mish': mish
+            })
+        else:
+            model = load_model(args.model, custom_objects = {
+                'mish': mish
+            })
 
     model.summary()
 
