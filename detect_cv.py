@@ -99,8 +99,11 @@ if __name__ == '__main__':
     vid = cv2.VideoCapture(0)
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-  
-    while(True):
+
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter('output.avi', fourcc, 20.0, (1280, 720))
+
+    while(vid.isOpened()):
         # Capture the video frame
         success, origin_cv_image = vid.read()
         if not success:
@@ -131,6 +134,7 @@ if __name__ == '__main__':
             input_cv_image = cv2.resize(origin_cv_image, (416, 416))
 
         input_cv_image = np.array(input_cv_image).astype(np.float32) / 255.0
+        # input_cv_image = input_cv_image + noise
 
         start_time = int(time.time() * 1000)
 
@@ -148,6 +152,13 @@ if __name__ == '__main__':
 
         # Draw bounding boxes
         out_img = draw_bounding_box(cv2.cvtColor(origin_cv_image, cv2.COLOR_RGB2BGR), boxes, confidences, class_ids, classes, colors)
+        out.write(out_img)
         cv2.namedWindow("result", cv2.WINDOW_NORMAL)
         cv2.imshow("result", out_img)
-        cv2.waitKey(1)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Release everything if job is finished
+    vid.release()
+    out.release()
+    cv2.destroyAllWindows()
