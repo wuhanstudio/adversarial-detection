@@ -48,6 +48,7 @@ class AdversarialDetection:
                         loss = loss + tf.reduce_sum(K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, 4]) * K.sigmoid(K.reshape(out, (-1, 5 + self.classes))[:, i+5]))
 
             grads = K.gradients(loss, self.model.input)
+
             if self.delta == None:
                 self.delta =  K.sign(grads[0])
             else:
@@ -59,7 +60,7 @@ class AdversarialDetection:
         # loss = K.sum(K.abs((self.model.input-K.mean(self.model.input))))
 
         # Reduce Random Noises
-        loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input))
+        # loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input))
 
         # Mirror
         # loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input)) - 0.01 * tf.reduce_sum(K.abs(self.model.input - tf.image.flip_left_right(self.model.input)))
@@ -93,8 +94,14 @@ class AdversarialDetection:
             else:
                 input_cv_image = input_cv_image + self.noise
 
+            input_cv_image = np.clip(input_cv_image, 0, 1).astype(np.float32)
+
+            outputs = []
+
             if not self.fixed:
-                grads = self.sess.run(self.delta, feed_dict={self.model.input:np.array([input_cv_image])}) / 255.0
+                outputs, grads = self.sess.run([self.model.output, self.delta], feed_dict={self.model.input:np.array([input_cv_image])})
+                grads = grads / 255.0
+
                 if self.monochrome:
                     # For monochrome images, we average the gradients over RGB channels
                     self.noise = self.noise + 5 / 3 * (grads[0, :, :, 0] + grads[0, :, :, 1] + grads[0, :, :, 2])
@@ -104,7 +111,7 @@ class AdversarialDetection:
                 self.noise = np.clip(self.noise, -1.0, 1.0)
 
                 self.noise = self.proj_lp(self.noise, xi=50, p = 2)
+            else:
+                outputs = self.sess.run(self.model.output, feed_dict={self.model.input:np.array([input_cv_image])})
 
-            input_cv_image = np.clip(input_cv_image, 0, 1).astype(np.float32)
-
-            return input_cv_image, self.sess.run(self.model.output, feed_dict={self.model.input:np.array([input_cv_image])})
+            return input_cv_image, outputs
