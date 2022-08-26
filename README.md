@@ -2,8 +2,6 @@
 
 > Attacking End-to-End Object Detection Systems
 
-![](doc/filter.jpg)
-
 ### Overview
 
 Generating adversarial patch is as easy as **drag and drop**.
