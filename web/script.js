@@ -33,6 +33,11 @@ function clear_patch() {
     var ctx=$('#canvas')[0].getContext('2d'); 
     ctx.clearRect(0, 0, 416, 416);
     socket.emit('clear_patch', 1);
+
+    $("#fixPatchCheck").prop("checked", false);
+    socket.emit('fix_patch', 0);
+
+    $('#patch').attr("src", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVQYV2P4DwABAQEAWk1v8QAAAABJRU5ErkJggg==");
 }
 
 // Receive the original image
@@ -46,7 +51,7 @@ function fix_patch(fixed) {
 
 $(document).ready(function () {
     // Fix patch
-    $("#customCheck1").change(function() {
+    $("#fixPatchCheck").change(function() {
         if(this.checked) {
             fix_patch(1);
         }

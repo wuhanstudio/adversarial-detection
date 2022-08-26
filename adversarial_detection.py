@@ -58,7 +58,7 @@ class AdversarialDetection:
         # loss = K.sum(K.abs((self.model.input-K.mean(self.model.input))))
 
         # Reduce Random Noises
-        loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input))
+        # loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input))
 
         # Mirror
         # loss = - 0.01 * tf.reduce_sum(tf.image.total_variation(self.model.input)) - 0.01 * tf.reduce_sum(K.abs(self.model.input - tf.image.flip_left_right(self.model.input)))
@@ -72,6 +72,7 @@ class AdversarialDetection:
         with self.graph.as_default():
             # Draw each adversarial patch on the input image
             if not self.fixed:
+                # Iterating the patch
                 for box in self.adv_patch_boxes:
                     if self.monochrome:
                         input_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 0] = self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
@@ -99,4 +100,5 @@ class AdversarialDetection:
                 else:
                     self.noise = self.noise + 5 * grads[0, :, :, :]
                 # self.noise = np.clip(self.noise, 0.0, 1.0)
-            return self.sess.run(self.model.output, feed_dict={self.model.input:np.array([input_cv_image])})
+
+            return input_cv_image, self.sess.run(self.model.output, feed_dict={self.model.input:np.array([input_cv_image])})
