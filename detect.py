@@ -1,3 +1,4 @@
+import os
 import argparse
 from adversarial_detection import AdversarialDetection
 import time
@@ -9,7 +10,9 @@ import socketio
 import eventlet
 import eventlet.wsgi
 
-from flask import Flask
+import threading
+
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 
 # Image Processing
@@ -46,6 +49,18 @@ def img2base64(image):
     img.save(buffer, format="JPEG")
 
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
+
+# Static website
+
+@app.route('/<path:path>', methods=['GET'])
+def static_proxy(path):
+    return send_from_directory(root, path)
+
+@app.route('/', methods=['GET'])
+def redirect_to_index():
+    return send_from_directory(root, 'index.html')
 
 @sio.on('connect')
 def connect(sid, environ):
@@ -206,6 +221,15 @@ def frame(sid, data):
     # cv2.imshow("result", input_cv_image)
     # cv2.waitKey(1)
 
+# Websocket thread
+def websocket_server_thread():
+    global app
+    # wrap Flask application with engineio's middleware
+    app = socketio.Middleware(sio, app)
+
+    # deploy as an eventlet WSGI server
+    eventlet.wsgi.server(eventlet.listen(('', 9090)), app)
+
 if __name__ == '__main__':
     # Parse arguments
     parser = argparse.ArgumentParser(description='Adversarial Detection')
@@ -221,8 +245,7 @@ if __name__ == '__main__':
 
     adv_detect = AdversarialDetection(args.model, args.attack, args.monochrome, classes)
 
-    # wrap Flask application with engineio's middleware
-    app = socketio.Middleware(sio, app)
+    t2 = threading.Thread(target=websocket_server_thread, daemon=True)
+    t2.start()
 
-    # deploy as an eventlet WSGI server
-    eventlet.wsgi.server(eventlet.listen(('', 9090)), app)
+    t2.join()

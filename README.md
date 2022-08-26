@@ -23,17 +23,7 @@ $ conda activate adversarial-detection
 $ python detect.py --model yolov3.h5 --class_name coco_classes.txt
 ```
 
-#### Step 2: Setup the camera
-
-This reads  images from the camera and publishes images using socketio.
-
-```
-$ cd camera
-$ conda activate adversarial-detection
-$ python camera.py
-```
-
-#### Step 3: Setup the browser
+#### Step 2: Setup the browser
 
 This is just a website, your can use any web server, just serve all the content under **client/web**.
 
