@@ -32,10 +32,11 @@ function clear_patch() {
     boxes = [];
     var ctx=$('#canvas')[0].getContext('2d'); 
     ctx.clearRect(0, 0, 416, 416);
-    socket.emit('clear_patch', 1);
 
     $("#fixPatchCheck").prop("checked", false);
     socket.emit('fix_patch', 0);
+
+    socket.emit('clear_patch', 1);
 
     $('#patch').attr("src", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVQYV2P4DwABAQEAWk1v8QAAAABJRU5ErkJggg==");
 }
