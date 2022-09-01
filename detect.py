@@ -79,7 +79,6 @@ def fix_patch(sid, data):
         adv_detect.fixed = True
 
         # Save each patch
-        adv_detect.patches = []
         patch_cv_image = np.zeros((416, 416, 3))
         for box in adv_detect.adv_patch_boxes:
             if adv_detect.monochrome:
@@ -89,7 +88,7 @@ def fix_patch(sid, data):
                 patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), 2] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
             else:
                 patch_cv_image[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] = adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
-            adv_detect.patches.append(adv_detect.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])])
+
         # Publish the patch image
         sio.emit('patch', {'data': img2base64(patch_cv_image*255.0), 'boxes': adv_detect.adv_patch_boxes})
     else:
@@ -99,7 +98,6 @@ def fix_patch(sid, data):
 def clear_patch(sid, data):
     if(data > 0):
         adv_detect.adv_patch_boxes = []
-        adv_detect.patches = []
         if adv_detect.monochrome:
             adv_detect.noise = np.zeros((416, 416))
         else:
