@@ -110,7 +110,7 @@ def draw_bounding_box(img, boxes, confidences, class_ids, class_names, colors):
         w = int(w * img.shape[1])
         h = int(h * img.shape[0])
         label = str(class_names[class_ids[i]]) + "=" + str(round(confidences[i]*100, 2)) + "%"
-        print(label)
+        # print(label)
         
         # Draw the bounding box on the image with label
         cv2.rectangle(img, (x, y), (x + w, y + h), colors[class_ids[i]], 2)

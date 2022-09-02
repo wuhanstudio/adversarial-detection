@@ -1,6 +1,6 @@
 import os
 import argparse
-from ..adversarial_detection import AdversarialDetection
+from adversarial_detection import AdversarialDetection
 import time
 
 import cv2

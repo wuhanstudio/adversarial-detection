@@ -8,7 +8,7 @@ tf.compat.v1.disable_eager_execution()
 import keras.backend as K
 
 class AdversarialDetection:
-    def __init__(self, model, attack_type, monochrome, classes):
+    def __init__(self, model, attack_type, monochrome, classes, xi=8/255.0, lr= 1 /255.0):
         self.classes = len(classes)
         self.epsilon = 1
         self.graph = tf.compat.v1.get_default_graph()
@@ -20,14 +20,19 @@ class AdversarialDetection:
             # self.noise = np.random.uniform( -1.0, 1.0, size=(416, 416, 3))
             self.noise = np.zeros((416, 416, 3))
 
+        self.xi = xi
+        self.lr = lr
+
         self.adv_patch_boxes = []
         self.fixed = False
 
         self.model = load_model(model)
         self.model.summary()
+
         self.attack_type = attack_type
 
         self.delta = None
+
         loss = 0
         for out in self.model.output:
             # Targeted One Box
@@ -72,11 +77,11 @@ class AdversarialDetection:
                     grads = self.sess.run(self.delta, feed_dict={self.model.input:np.array([input_cv_image])})
                     if self.monochrome:
                         # For monochrome images, we average the gradients over RGB channels
-                        self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])] += 1 / 3.0 / 255.0 * (grads[0, :, :, 0] + grads[0, :, :, 1] + grads[0, :, :, 2])[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
+                        self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])] += self.lr / 3 * (grads[0, :, :, 0] + grads[0, :, :, 1] + grads[0, :, :, 2])[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
                     else:
-                        self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] += 1 / 255.0 * grads[0, :, :, :][box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
+                        self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] += self.lr * grads[0, :, :, :][box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
 
-                    self.noise = np.clip(self.noise, -0.03, 0.03)
+                    self.noise = np.clip(self.noise, -self.xi, self.xi)
 
             input_cv_image = np.clip(input_cv_image, 0.0, 1.0)
 
