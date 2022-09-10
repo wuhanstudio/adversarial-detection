@@ -20,6 +20,6 @@ $ conda activate adversarial-detection
 $ python detect.py --model yolov3.h5 --class_name coco_classes.txt
 ```
 
-The web page will be available at: http://localhost:3333/
+The web page will be available at: http://localhost:9090/
 
 That's it!
