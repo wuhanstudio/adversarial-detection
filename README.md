@@ -16,7 +16,7 @@ You may use [anaconda](https://www.continuum.io/downloads) or [miniconda](https:
 
 ```
 $ git clone https://github.com/wuhanstudio/adversarial-detection
-$ cd adversarial-detection/model
+$ cd adversarial-detection
 
 $ # CPU
 $ conda env create -f environment.yml
