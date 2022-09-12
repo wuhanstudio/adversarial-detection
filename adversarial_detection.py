@@ -1,14 +1,15 @@
 # Deep Learning Libraries
 import numpy as np
 np.set_printoptions(suppress=True)
-from keras.models import load_model
 
-import tensorflow as tf
-tf.compat.v1.disable_eager_execution()
-import keras.backend as K
+from keras.models import load_model
 
 class AdversarialDetection:
     def __init__(self, model, attack_type, monochrome, classes, xi=8/255.0, lr= 1 /255.0):
+        import tensorflow as tf
+        tf.compat.v1.disable_eager_execution()
+        import keras.backend as K
+
         self.classes = len(classes)
         self.epsilon = 1
         self.graph = tf.compat.v1.get_default_graph()
@@ -77,7 +78,11 @@ class AdversarialDetection:
                     grads = self.sess.run(self.delta, feed_dict={self.model.input:np.array([input_cv_image])})
                     if self.monochrome:
                         # For monochrome images, we average the gradients over RGB channels
-                        self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])] += self.lr / 3 * (grads[0, :, :, 0] + grads[0, :, :, 1] + grads[0, :, :, 2])[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
+                        # self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])] += self.lr / 3 * (grads[0, :, :, 0] + grads[0, :, :, 1] + grads[0, :, :, 2])[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
+
+                        # self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])] += self.lr * grads[0, :, :, 0][box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
+                        # self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])] += self.lr * grads[0, :, :, 1][box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
+                        self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])] += self.lr * grads[0, :, :, 2][box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2])]
                     else:
                         self.noise[box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :] += self.lr * grads[0, :, :, :][box[1]:(box[1]+box[3]), box[0]:(box[0] + box[2]), :]
 

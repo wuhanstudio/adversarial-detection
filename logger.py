@@ -31,6 +31,7 @@ class TensorBoardLogger(object):
         summary = tf.compat.v1.Summary(value=[tf.compat.v1.Summary.Value(tag=tag,
                                                      simple_value=value)])
         self.writer.add_summary(summary, step)
+        self.writer.flush()
 
     def log_images(self, tag, images, step):
         """Logs a list of images."""

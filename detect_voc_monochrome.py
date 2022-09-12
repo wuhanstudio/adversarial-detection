@@ -47,7 +47,7 @@ def voc_benchmark(model, attack, monochrome, classes, xi, lr, boxes, log_dir):
     voc_boxes_increase = []
 
     for i in tqdm(range(len(img_paths))):
-        adv_detect.noise = np.zeros((416, 416, 3))
+        adv_detect.noise = np.zeros((416, 416))
 
         img = cv2.imread(str(img_paths[i]))
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -88,6 +88,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Adversarial Detection')
     parser.add_argument('--model', help='deep learning model', type=str, required=True)
     parser.add_argument('--class_name', help='class names', type=str, required=True)
+    parser.add_argument('--monochrome', action='store_true', help='monochrome patch')
 
     args = parser.parse_args()
 
@@ -102,37 +103,7 @@ if __name__ == '__main__':
         lr = 2
         boxes = [0, 0, 64, 64]
 
-        for xi in [10, 8, 4, 2]:
-            log_dir = 'logs/'+ str(attack) + '/xi/' + str(xi) + '/' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        for xi in [8]:
+            log_dir = 'logs/monochrome/B/' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             print(xi, lr, boxes, log_dir)
-            voc_benchmark(args.model, attack, False, classes, xi, lr, boxes, log_dir)
-
-        xi = 8
-        # lr
-        boxes = [0, 0, 64, 64]
-
-        for lr in [1, 2, 4, 8]:
-            log_dir = 'logs/'+ str(attack) + '/lr/' + str(lr) + '/' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            print(xi, lr, boxes, log_dir)
-            voc_benchmark(args.model, attack, False, classes, xi, lr, boxes, log_dir)
-
-        xi = 8
-        lr = 2
-        # box
-        #for box in [[168, 168, 80, 80], [188, 188, 40, 40], [198, 198, 20, 20], [203, 203, 10, 10]]:
-        for box in [[0, 0, 128, 128], [0, 0, 64, 64], [0, 0, 32, 32], [0, 0, 16, 16]]:
-            log_dir = 'logs/'+ str(attack) + '/box/' + str(box[3]) + '/' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            print(xi, lr, box, log_dir)
-            voc_benchmark(args.model, attack, False, classes, xi, lr, box, log_dir)
-
-        xi = 8
-        lr = 2
-        # box
-        for box in [[0, 0, 64, 64], 
-                    [0, 0, 52, 78], [0, 0, 45, 90], [0, 0, 37, 111], 
-                    [0, 0, 78, 52], [0, 0, 90, 45], [0, 0, 111, 37],]:
-            log_dir = 'logs/'+ str(attack) + '/aspect/' + str(box[2]) + '/' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            print(xi, lr, box, log_dir)
-            voc_benchmark(args.model, attack, False, classes, xi, lr, box, log_dir)
-
-
+            voc_benchmark(args.model, attack, True, classes, xi, lr, boxes, log_dir)

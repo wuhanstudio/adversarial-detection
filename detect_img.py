@@ -116,7 +116,7 @@ def adversarial_detection_thread():
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
     # Capture the video frame
-    origin_cv_image = cv2.imread("demo.jpg")  # read the camera frame
+    origin_cv_image = cv2.imread("notebooks/demo.jpg")  # read the camera frame
     if origin_cv_image is None:
         print("Failed to open the camera")
         exit()

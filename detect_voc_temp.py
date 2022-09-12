@@ -98,29 +98,10 @@ if __name__ == '__main__':
     colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
     for attack in ["multi_untargeted"]:
-        # xi
-        lr = 2
-        boxes = [0, 0, 64, 64]
-
-        for xi in [10, 8, 4, 2]:
-            log_dir = 'logs/'+ str(attack) + '/xi/' + str(xi) + '/' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            print(xi, lr, boxes, log_dir)
-            voc_benchmark(args.model, attack, False, classes, xi, lr, boxes, log_dir)
-
-        xi = 8
-        # lr
-        boxes = [0, 0, 64, 64]
-
-        for lr in [1, 2, 4, 8]:
-            log_dir = 'logs/'+ str(attack) + '/lr/' + str(lr) + '/' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            print(xi, lr, boxes, log_dir)
-            voc_benchmark(args.model, attack, False, classes, xi, lr, boxes, log_dir)
-
         xi = 8
         lr = 2
         # box
-        #for box in [[168, 168, 80, 80], [188, 188, 40, 40], [198, 198, 20, 20], [203, 203, 10, 10]]:
-        for box in [[0, 0, 128, 128], [0, 0, 64, 64], [0, 0, 32, 32], [0, 0, 16, 16]]:
+        for box in [[0, 0, 128, 128], [0, 0, 32, 32], [0, 0, 16, 16]]:
             log_dir = 'logs/'+ str(attack) + '/box/' + str(box[3]) + '/' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             print(xi, lr, box, log_dir)
             voc_benchmark(args.model, attack, False, classes, xi, lr, box, log_dir)
@@ -128,11 +109,9 @@ if __name__ == '__main__':
         xi = 8
         lr = 2
         # box
-        for box in [[0, 0, 64, 64], 
-                    [0, 0, 52, 78], [0, 0, 45, 90], [0, 0, 37, 111], 
-                    [0, 0, 78, 52], [0, 0, 90, 45], [0, 0, 111, 37],]:
+        for box in [ [0, 0, 52, 78], [0, 0, 45, 90], [0, 0, 37, 111], 
+                     [0, 0, 78, 52], [0, 0, 90, 45], [0, 0, 111, 37] ]:
             log_dir = 'logs/'+ str(attack) + '/aspect/' + str(box[2]) + '/' + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             print(xi, lr, box, log_dir)
             voc_benchmark(args.model, attack, False, classes, xi, lr, box, log_dir)
-
 
