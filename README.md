@@ -14,9 +14,16 @@ You may use [anaconda](https://www.continuum.io/downloads) or [miniconda](https:
 
 ```
 $ git clone https://github.com/wuhanstudio/adversarial-detection
-$ cd adversarial-detection
+$ cd adversarial-detection/model
+
+$ # CPU
 $ conda env create -f environment.yml
 $ conda activate adversarial-detection
+
+$ # GPU
+$ conda env create -f environment_gpu.yml
+$ conda activate adversarial-gpu-detection
+
 $ python detect.py --model yolov3-tiny.h5 --class_name coco_classes.txt
 ```
 
