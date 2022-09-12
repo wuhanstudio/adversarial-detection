@@ -36,7 +36,7 @@ That's it!
 ## Citation
 
 ```
-@misc{https://doi.org/10.48550/arxiv.2209.01962,
+@misc{han2022detection,
   doi = {10.48550/ARXIV.2209.01962},
   url = {https://arxiv.org/abs/2209.01962},
   author = {Wu, Han and Yunas, Syed and Rowlands, Sareh and Ruan, Wenjie and Wahlstrom, Johan}, 
