@@ -1,6 +1,8 @@
 ## Adversarial Detection
 
-> Attacking End-to-End Object Detection Systems
+> Attacking Object Detection Systems in Real Time
+
+[[ Talk ]](https://detection.wuhanstudio.uk) [[ Video ]]() [[ Paper ]](https://arxiv.org/abs/2209.01962) [[ Code ]](https://github.com/wuhanstudio/adversarial-detection)
 
 ### Overview
 
@@ -30,3 +32,16 @@ $ python detect.py --model yolov3-tiny.h5 --class_name coco_classes.txt
 The web page will be available at: http://localhost:9090/
 
 That's it!
+
+## Citation
+
+```
+@misc{https://doi.org/10.48550/arxiv.2209.01962,
+  doi = {10.48550/ARXIV.2209.01962},
+  url = {https://arxiv.org/abs/2209.01962},
+  author = {Wu, Han and Yunas, Syed and Rowlands, Sareh and Ruan, Wenjie and Wahlstrom, Johan}, 
+  title = {Adversarial Detection: Attacking Object Detection in Real Time},
+  publisher = {arXiv},
+  year = {2022},
+}
+```
