@@ -33,6 +33,14 @@ The web page will be available at: http://localhost:9090/
 
 That's it!
 
+## Adversarial ROS Detection
+
+We also tested our attacks in ROS Gazebo simulator. 
+
+https://github.com/wuhanstudio/adversarial-ros-detection
+
+[![](https://raw.githubusercontent.com/wuhanstudio/adversarial-ros-detection/master/doc/demo.jpg)](https://github.com/wuhanstudio/adversarial-ros-detection)
+
 ## Citation
 
 ```
