@@ -50,6 +50,6 @@ https://github.com/wuhanstudio/adversarial-ros-detection
   author = {Wu, Han and Yunas, Syed and Rowlands, Sareh and Ruan, Wenjie and Wahlstrom, Johan}, 
   title = {Adversarial Detection: Attacking Object Detection in Real Time},
   publisher = {arXiv},
-  year = {2022},
+  year = {2022}
 }
 ```
