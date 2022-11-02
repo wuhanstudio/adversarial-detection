@@ -2,7 +2,7 @@
 
 > Attacking Object Detection Systems in Real Time
 
-[[ Talk ]](https://detection.wuhanstudio.uk) [[ Video ]](https://youtu.be/zJZ1aNlXsMU) [[ Paper ]](https://arxiv.org/abs/2209.01962) [[ Code ]](https://github.com/wuhanstudio/adversarial-detection)
+[[ Talk ]](https://detection.wuhanstudio.uk) [[ Video ]](https://youtu.be/zJZ1aNlXsMU) [[ Code ]](https://github.com/wuhanstudio/adversarial-detection) [[ Paper ]](https://arxiv.org/abs/2209.01962) 
 
 ### Overview
 
