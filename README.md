@@ -26,6 +26,9 @@ $ # GPU
 $ conda env create -f environment_gpu.yml
 $ conda activate adversarial-gpu-detection
 
+# Pre-trained models are available here
+# https://github.com/wuhanstudio/adversarial-detection/releases
+
 $ python detect.py --model model/yolov3-tiny.h5 --class_name coco_classes.txt
 ```
 
