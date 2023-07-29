@@ -47,12 +47,14 @@ https://github.com/wuhanstudio/adversarial-ros-detection
 ## Citation
 
 ```
-@misc{han2022detection,
-  doi = {10.48550/ARXIV.2209.01962},
-  url = {https://arxiv.org/abs/2209.01962},
-  author = {Wu, Han and Yunas, Syed and Rowlands, Sareh and Ruan, Wenjie and Wahlstrom, Johan}, 
-  title = {Adversarial Detection: Attacking Object Detection in Real Time},
-  publisher = {arXiv},
-  year = {2022}
+@INPROCEEDINGS{han2023detection,
+  author={Wu, Han and Yunas, Syed and Rowlands, Sareh and Ruan, Wenjie and Wahlström, Johan},
+  booktitle={2023 IEEE Intelligent Vehicles Symposium (IV)}, 
+  title={Adversarial Detection: Attacking Object Detection in Real Time}, 
+  year={2023},
+  volume={},
+  number={},
+  pages={1-7},
+  doi={10.1109/IV55152.2023.10186608}
 }
 ```
