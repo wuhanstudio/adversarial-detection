@@ -12,7 +12,17 @@ Generating adversarial patch is as easy as **drag and drop**.
 
 ### Quick Start
 
-You may use [anaconda](https://www.continuum.io/downloads) or [miniconda](https://conda.io/miniconda.html). 
+Pre-trained models are available here:
+
+- https://github.com/wuhanstudio/adversarial-detection/releases
+
+It's recommended to use `uv` to set up the python virtual environment:
+
+```
+uv sync
+```
+
+You may also use [anaconda](https://www.continuum.io/downloads) or [miniconda](https://conda.io/miniconda.html). 
 
 ```
 $ git clone https://github.com/wuhanstudio/adversarial-detection
@@ -25,10 +35,11 @@ $ conda activate adversarial-detection
 $ # GPU
 $ conda env create -f environment_gpu.yml
 $ conda activate adversarial-gpu-detection
+```
 
-# Pre-trained models are available here
-# https://github.com/wuhanstudio/adversarial-detection/releases
+Start the web application:
 
+```
 $ python detect.py --model model/yolov3-tiny.h5 --class_name coco_classes.txt
 ```
 
